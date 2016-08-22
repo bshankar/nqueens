@@ -5,17 +5,14 @@ using std::cout;
 using std::endl;
 
 board_state::board_state(int board_size) {
-    if (board_size < 2 || board_size > 20) {
+    if (board_size < 2 || board_size > 26) {
 
-        cout << "Valid board sizes are 2 to 20" << endl;
+        cout << "Valid board sizes are 2 to 26" << endl;
         exit(1);
     }
 
     this->board_size = board_size;
     cols.resize(board_size);
-    col_occ.resize(board_size);
-    diag_occ.resize(2*board_size - 1);
-    antidiag_occ.resize(2*board_size - 1);
 }
 
 void board_state::solve() {

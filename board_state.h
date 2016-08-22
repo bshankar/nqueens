@@ -11,9 +11,8 @@ public:
 private:
     int board_size;
     std::vector<int> cols;
-    std::vector<bool> col_occ,
-        diag_occ,
-        antidiag_occ;
+    // column used, diag occupied, anti-diag occupied
+    unsigned __int128 constraints = 0;
     unsigned long solutions = 0;
 };
 
