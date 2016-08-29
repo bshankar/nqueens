@@ -1,7 +1,7 @@
 #ifndef BOARD_STATE_H_MZEYWVGT
 #define BOARD_STATE_H_MZEYWVGT
 
-#include <vector>
+typedef unsigned __int128 board_t;
 
 class board_state {
 public:
@@ -10,10 +10,13 @@ public:
     void search(int row);
 private:
     int board_size;
-    std::vector<int> cols;
     // column used, diag occupied, anti-diag occupied
-    unsigned __int128 constraints = 0;
+    board_t constraints = 0, ONE = 1;
+    board_t all_constraints[26][26] = {};
     unsigned long solutions = 0;
+
+    // pre calculate and store all the constraints
+    void calculate_constraints();
 };
 
 #endif /* end of include guard: BOARD_STATE_H_MZEYWVGT */
