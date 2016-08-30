@@ -15,8 +15,29 @@ board_state::board_state(int board_size) {
 }
 
 void board_state::init_tables() {
-    for (auto col = 0; col < board_size; ++col)
-        valid_cols[col] = 0xffffffffffffffff >> (MAX_BOARD - board_size);
+    FULL = (~FULL) >> (MAX_BOARD - board_size);
+    for (auto col = 0; col < board_size; ++col) {
+        valid_cols[col] = FULL;
+        exclude[col] = FULL ^ (ONE << col);
+    }
+
+    for (auto dist = 0; dist < board_size - 1; ++dist)
+        for (auto col = 0; col < board_size; ++col) {
+            masks[dist][col] = ONE << 2 * (dist + 1) |
+                               ONE << (dist + 1) |
+                               ONE;
+
+            // shift the masks properly
+            if (dist + 1 > col)
+                masks[dist][col] >>= dist + 1 - col;
+            else if (dist + 1 < col)
+                masks[dist][col] <<= col - dist - 1;
+
+            // take the complement
+            masks[dist][col] = ~masks[dist][col];
+            // remove overflows
+            masks[dist][col] &= FULL;
+        }
 }
 
 void board_state::solve() {
@@ -37,19 +58,27 @@ void board_state::search(int row) {
     // 2. Use openmp for parallel search: jx
     // 3. Denser encoding of constraints preferably with 64bit arithmetic >= 2x
     // 4. Intelligently select a column for a row that has no violations
-    for (;;) {
-        int col = __builtin_ffsl(valid_cols[row]);
+    while (valid_cols[row]) {
+        int col = __builtin_ffsl(valid_cols[row]) - 1;
+        // exclude this column
+        valid_cols[row] &= exclude[col];
         cover(row, col);
         search(row + 1);
-        uncover(row, col);
+        uncover(row);
     }
 }
 
 void board_state::cover(int row, int col) {
-    // mask all conflicting rows, columns, diagonals
+    for (auto dist = 0; dist < board_size - row - 1; ++dist) {
+        // back up old values
+        tmp[row][row + dist + 1] = valid_cols[row + dist + 1];
+        // mask all conflicting columns
+        valid_cols[row + dist + 1] &= masks[dist][col];
+    }
 }
 
-void board_state::uncover(int row, int col) {
-    // unmask all conflicting rows, columns, diagonals
-    // mask col which was already searched
+void board_state::uncover(int row) {
+    // restore backed up values
+    for (auto dist = 0; dist < board_size - row - 1; ++dist)
+        valid_cols[row + dist + 1] = tmp[row][row + dist + 1];
 }
