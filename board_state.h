@@ -16,10 +16,12 @@ private:
     row_t board_size;
     board_t ONE  = 1,
             FULL = 0, // correct its value later
+            right_half,
             solutions = 0;
 
     void search(board_t left_diag,
-                board_t col, board_t right_diag);
+                board_t col, board_t right_diag,
+                board_t right_half, board_t right_half2);
 };
 
 #endif /* end of include guard: BOARD_STATE_H_MZEYWVGT */
